@@ -24,6 +24,18 @@ class Output:
     diskon: int
     totalBayar: int
 
+@dataclass
+class Data:
+    name: str
+    noTelp: str
+    totalHarga: int
+    jenisRoti: list
+    totalHarga: int
+    diskon: int
+    totalBayar: int
+    uangBayar: int
+    uangKembalian: int
+
 head = PrettyTable(["No", "Jenis Roti", "Variant Rasa", "Jumlah Beli", "Harga Satuan", "Total Harga"])
 
 def headerStyle():
@@ -182,7 +194,7 @@ def outputHarga(response: Response):
     """
     head.add_row([response.no, response.jenisRoti, response.variantRoti, response.jumlahBeli, response.hargaSatuan, response.jumlahHarga])
 
-def output(response: Output) -> pd.DataFrame:
+def output(response: Output):
     """
     # Description
     Fungsi ini untuk menampikan 
@@ -201,19 +213,18 @@ def output(response: Output) -> pd.DataFrame:
     print(f"Diskon              : Rp. {response.diskon}")
     print(f"Total Bayar         : Rp. {response.totalBayar}")
     print("==========================================")
-    
-    data = [[response.name, response.noTelp, response.totalHarga, response.diskon, response.totalBayar]]
-    return pd.DataFrame(data, columns=["Nama", "No Telepon", "Total Harga", "Diskon", "Total Bayar"])
+
+def getData(data: Data) -> pd.DataFrame:
+    data = [[data.name, data.noTelp, data.jenisRoti, data.totalHarga, data.diskon, data.totalBayar, data.uangBayar, data.uangKembalian]]
+    return pd.DataFrame(data, columns=["Nama", "No Telepon", "Jenis Roti" ,"Total Harga", "Diskon", "Total Bayar", "Uang Bayar", "Uang Kembalian"])
 
 def saveHistory(data: pd.DataFrame):
     file_name = "data_consument.xlsx"
     if os.path.exists(file_name):
-        mode = "w"
+        with pd.ExcelWriter(file_name, mode="a", if_sheet_exists="overlay") as writer:
+            data.to_excel(writer, index=False)
     else:
         mode = "x"
-
-    data.to_excel(file_name, index=False)
-    
 
 def main():
     """
@@ -228,6 +239,7 @@ def main():
     banyakBeli = int(input("Mau Beli Berapa Jenis ? : "))
     
     listJumlaHarga = []
+    listJenisRoti = []
     totalPrice = 0
     
     for i in range(banyakBeli):
@@ -252,6 +264,7 @@ def main():
         # result to tabel
         outputHarga(response=result)
         listJumlaHarga.append(total_harga)
+        listJenisRoti.append(jenisRoti)
     
     for resultPembayaran in listJumlaHarga:
         totalPrice += resultPembayaran
@@ -271,16 +284,29 @@ def main():
         diskon=diskon,
         totalBayar=total_bayar,
     )
-    
-    data = output(response=responses)
-    saveHistory(data=data)
+    output(response=responses)
     
     print("==========================================")
     uangBayar = int(input("Uang Bayar          : Rp. "))
     uangKembali = uangBayar - total_bayar
     print(f"Total Kembalian     : Rp. {uangKembali}")
     print("==========================================")
-    print("\t\tTerimakasih")
+    print("\tData success save to Excel")
+    
+    # save to excel
+    resultData = Data(
+        name=nama,
+        noTelp=noTelp,
+        totalHarga=totalPrice,
+        jenisRoti=listJenisRoti,
+        diskon=diskon,
+        totalBayar=total_bayar,
+        uangBayar=uangBayar,
+        uangKembalian=uangKembali,
+    )
+    
+    data = getData(data=resultData)
+    saveHistory(data=data)
 
 
 # Running function main 
