@@ -1,13 +1,8 @@
-from prettytable import PrettyTable
 from dataclasses import dataclass
-import pandas as pd
-import numpy
-from openpyxl import Workbook
-import os
-
-# Create Data Transfer Object
+from prettytable import PrettyTable
+    
 @dataclass
-class Response:
+class OutputHarga:
     no: int
     jenisRoti: str
     variantRoti: str
@@ -17,28 +12,16 @@ class Response:
     
 # Create Data Transfer Object for Response Text
 @dataclass
-class Output:
+class OutputData:
     name: str
     noTelp: str
     totalHarga: int
     diskon: int
     totalBayar: int
-
-@dataclass
-class Data:
-    name: str
-    noTelp: str
-    totalHarga: int
-    jenisRoti: list
-    totalHarga: int
-    diskon: int
-    totalBayar: int
-    uangBayar: int
-    uangKembalian: int
 
 head = PrettyTable(["No", "Jenis Roti", "Variant Rasa", "Jumlah Beli", "Harga Satuan", "Total Harga"])
 
-def headerStyle():
+def headerStyle() -> None:
     """
     # Description
     Fungsi ini bertugas untuk
@@ -47,15 +30,17 @@ def headerStyle():
     """
     print("\t\tToko Roti")
     print("=========================================")
-    print("Kode     Jenis Roti")
-    print("1.       Roti Tawar")
-    print("2.       Roti Panada")
-    print("3.       Roti Buaya")
-    print("4.       Roti Odading")
-    print("5.       Roti Sisir")
-    print("6.       Roti Ganjel Rel")
+    header = PrettyTable(["Kode", "Jenis Roti", "Jumlah Variant"])
+    header.add_row(["1", "Roti Tawar", "3"])
+    header.add_row(["2", "Roti Panada", "2"])
+    header.add_row(["3", "Roti Buaya", "2"])
+    header.add_row(["4", "Roti Odading", "3"])
+    header.add_row(["5", "Roti Sisir", "2"])
+    header.add_row(["6", "Roti Ganjel Rel", "2"])
+    header.align = "l"
+    print(header)
   
-def printOutVariant(kode: int):
+def printOutVariant(kode: int) -> None:
     """
     # Description
     Fungsi ini bertugas untuk
@@ -182,7 +167,7 @@ def logicBuy( kode: int, variant: int, banyakbeli: int) -> any:
     
     return jenisVariant, harga, jenisRoti, total_harga
 
-def outputHarga(response: Response):
+def outputHarga(response: OutputHarga) -> None:
     """
     # Description
     Fungsi ini bertugas untuk 
@@ -194,7 +179,7 @@ def outputHarga(response: Response):
     """
     head.add_row([response.no, response.jenisRoti, response.variantRoti, response.jumlahBeli, response.hargaSatuan, response.jumlahHarga])
 
-def output(response: Output):
+def output(response: OutputData) -> None:
     """
     # Description
     Fungsi ini untuk menampikan 
@@ -214,19 +199,8 @@ def output(response: Output):
     print(f"Total Bayar         : Rp. {response.totalBayar}")
     print("==========================================")
 
-def getData(data: Data) -> pd.DataFrame:
-    data = [[data.name, data.noTelp, data.jenisRoti, data.totalHarga, data.diskon, data.totalBayar, data.uangBayar, data.uangKembalian]]
-    return pd.DataFrame(data, columns=["Nama", "No Telepon", "Jenis Roti" ,"Total Harga", "Diskon", "Total Bayar", "Uang Bayar", "Uang Kembalian"])
 
-def saveHistory(data: pd.DataFrame):
-    file_name = "data_consument.xlsx"
-    if os.path.exists(file_name):
-        with pd.ExcelWriter(file_name, mode="a", if_sheet_exists="overlay") as writer:
-            data.to_excel(writer, index=False)
-    else:
-        mode = "x"
-
-def main():
+def main() -> None:
     """
     # Description
     Fungsi ini untuk semua logic
@@ -240,7 +214,7 @@ def main():
     
     listJumlaHarga = []
     listJenisRoti = []
-    totalPrice = 0
+    totalPrice = 0  
     
     for i in range(banyakBeli):
         i = i + 1
@@ -252,7 +226,7 @@ def main():
         jenisVariant, harga, jenisRoti, total_harga = logicBuy(kodeRoti, kodeVariant, jumlahBeli)
         
         # result Response
-        result = Response(
+        result = OutputHarga(
             no=i,
             jenisRoti=jenisRoti,
             variantRoti=jenisVariant,
@@ -277,7 +251,7 @@ def main():
     total_bayar = totalPrice - diskon
     print('\n' + "\tTotal dan Hasil Pembelian")
     
-    responses = Output(
+    responses = OutputData(
         name=nama,
         noTelp=noTelp,
         totalHarga=totalPrice,
@@ -291,24 +265,14 @@ def main():
     uangKembali = uangBayar - total_bayar
     print(f"Total Kembalian     : Rp. {uangKembali}")
     print("==========================================")
-    print("\tData success save to Excel")
-    
-    # save to excel
-    resultData = Data(
-        name=nama,
-        noTelp=noTelp,
-        totalHarga=totalPrice,
-        jenisRoti=listJenisRoti,
-        diskon=diskon,
-        totalBayar=total_bayar,
-        uangBayar=uangBayar,
-        uangKembalian=uangKembali,
-    )
-    
-    data = getData(data=resultData)
-    saveHistory(data=data)
-
+    print("\tTerimakasih Telah Membeli")
+    print("\n")
 
 # Running function main 
 if __name__ == "__main__":
-    main() 
+    while True:
+        addData = input("Ingin beli roti ? (y/n): ")
+        if addData == "y":
+            main()
+        else:
+            break
